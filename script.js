@@ -97,8 +97,12 @@ function setupImageListener(config) {
     // Initial update
     updateImage();
     
-    // Listen for changes
+    // Listen for ALL possible changes
     worksheet.addEventListener(tableau.TableauEventType.MarkSelectionChanged, updateImage);
     worksheet.addEventListener(tableau.TableauEventType.FilterChanged, updateImage);
     worksheet.addEventListener(tableau.TableauEventType.ParameterChanged, updateImage);
+    worksheet.addEventListener(tableau.TableauEventType.DataChanged, updateImage);
+    
+    // Add a polling mechanism as a fallback
+    setInterval(updateImage, 1000);
 }
