@@ -75,6 +75,9 @@ function setupImageListener(config) {
     
     const updateImage = async () => {
         try {
+            // Force a data refresh before getting the data
+            await worksheet.refreshDataAsync();
+            
             const dataTable = await worksheet.getSummaryDataAsync();
             const columnIndex = dataTable.columns.findIndex(col => col.fieldName === config.columnName);
             
@@ -97,12 +100,14 @@ function setupImageListener(config) {
     // Initial update
     updateImage();
     
-    // Listen for ALL possible changes
+    // Listen for changes at both worksheet and dashboard level
     worksheet.addEventListener(tableau.TableauEventType.MarkSelectionChanged, updateImage);
     worksheet.addEventListener(tableau.TableauEventType.FilterChanged, updateImage);
-    worksheet.addEventListener(tableau.TableauEventType.ParameterChanged, updateImage);
     worksheet.addEventListener(tableau.TableauEventType.DataChanged, updateImage);
     
-    // Add a polling mechanism as a fallback
-    setInterval(updateImage, 1000);
+    // Listen for parameter changes at the dashboard level
+    dashboard.addEventListener(tableau.TableauEventType.ParameterChanged, updateImage);
+    
+    // Add a polling mechanism with a shorter interval
+    setInterval(updateImage, 500);  // Check every 500ms
 }
