@@ -74,40 +74,30 @@ function setupImageListener(config) {
     const worksheet = dashboard.worksheets.find(w => w.name === config.worksheetName);
     
     const updateImage = async () => {
-        try {
-            // Force a data refresh before getting the data
-            await worksheet.refreshDataAsync();
+        // Add a small delay to allow calculated field to update
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const dataTable = await worksheet.getSummaryDataAsync();
+        const columnIndex = dataTable.columns.findIndex(col => col.fieldName === config.columnName);
+        
+        if (dataTable.data.length > 0 && columnIndex !== -1) {
+            const imageUrl = dataTable.data[0][columnIndex].value;
+            const img = document.getElementById('displayImage');
+            img.src = imageUrl;
+            img.style.display = 'block';
             
-            const dataTable = await worksheet.getSummaryDataAsync();
-            const columnIndex = dataTable.columns.findIndex(col => col.fieldName === config.columnName);
-            
-            if (dataTable.data.length > 0 && columnIndex !== -1) {
-                const imageUrl = dataTable.data[0][columnIndex].value;
-                const img = document.getElementById('displayImage');
-                img.src = imageUrl;
-                img.style.display = 'block';
-                
-                // Handle load errors
-                img.onerror = () => {
-                    img.style.display = 'none';
-                };
-            }
-        } catch (error) {
-            console.error('Error updating image:', error);
+            img.onerror = () => {
+                img.style.display = 'none';
+            };
         }
     };
 
     // Initial update
     updateImage();
     
-    // Listen for changes at both worksheet and dashboard level
-    worksheet.addEventListener(tableau.TableauEventType.MarkSelectionChanged, updateImage);
-    worksheet.addEventListener(tableau.TableauEventType.FilterChanged, updateImage);
-    worksheet.addEventListener(tableau.TableauEventType.DataChanged, updateImage);
-    
     // Listen for parameter changes at the dashboard level
     dashboard.addEventListener(tableau.TableauEventType.ParameterChanged, updateImage);
     
-    // Add a polling mechanism with a shorter interval
-    setInterval(updateImage, 500);  // Check every 500ms
+    // Simple polling as backup
+    setInterval(updateImage, 2000);
 }
