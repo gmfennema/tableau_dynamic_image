@@ -95,9 +95,12 @@ function setupImageListener(config) {
     // Initial update
     updateImage();
     
-    // Listen for parameter changes at the dashboard level
-    dashboard.addEventListener(tableau.TableauEventType.ParameterChanged, updateImage);
-    
-    // Simple polling as backup
-    setInterval(updateImage, 2000);
+    // Subscribe to all parameter changes
+    tableau.extensions.dashboardContent.dashboard.getParametersAsync().then(parameters => {
+        parameters.forEach(parameter => {
+            parameter.addEventListener(tableau.TableauEventType.ParameterChanged, () => {
+                updateImage();
+            });
+        });
+    });
 }
