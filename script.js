@@ -83,12 +83,20 @@ function setupImageListener(config) {
         if (dataTable.data.length > 0 && columnIndex !== -1) {
             const imageUrl = dataTable.data[0][columnIndex].value;
             const img = document.getElementById('displayImage');
-            img.src = imageUrl;
-            img.style.display = 'block';
             
-            img.onerror = () => {
+            // Check if the URL starts with http:// or https://
+            if (typeof imageUrl === 'string' && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+                img.src = imageUrl;
+                img.style.display = 'block';
+                
+                img.onerror = () => {
+                    img.style.display = 'none';
+                };
+            } else {
+                // If not a valid URL, hide the image
                 img.style.display = 'none';
-            };
+                img.src = ''; // Clear any previous source
+            }
         }
     };
 
