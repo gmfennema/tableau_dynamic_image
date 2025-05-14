@@ -79,19 +79,26 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.data.length && idx >= 0) {
         const url = data.data[0][idx].value;
         if (typeof url === 'string' && /^https?:\/\//.test(url)) {
-          let dataUrl = await toDataURL(url);
-          if (!dataUrl) {
-            // fallback: drop-in the remote URL directly
-            img.crossOrigin = 'anonymous';
-            dataUrl = url;
+          const embeddedDataUrl = await toDataURL(url);
+          if (embeddedDataUrl) {
+            img.src = embeddedDataUrl;
+            img.style.display = 'block';
+            img.onerror = () => {
+              img.style.display = 'none';
+              img.src = '';
+            };
+          } else {
+            console.warn(`Failed to convert image from ${url} to data URL. Image will not be displayed.`);
+            img.style.display = 'none';
+            img.src = '';
           }
-          img.src = dataUrl;
-          img.style.display = 'block';
-          img.onerror = () => img.style.display = 'none';
         } else {
           img.style.display = 'none';
           img.src = '';
         }
+      } else {
+        img.style.display = 'none';
+        img.src = '';
       }
     };
   
